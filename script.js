@@ -2,7 +2,7 @@
   Replace the placeholder below with your deployed Cloudflare Worker URL.
   Example: https://loreal-advisor.your-name.workers.dev
 */
-const WORKER_URL = "PASTE_YOUR_CLOUDFLARE_WORKER_URL_HERE";
+const WORKER_URL = "https://lingering-snowflake-11de.dawsonmerriman.workers.dev/";
 
 const STORAGE_KEY = "lorealSelectedProductIds";
 const DIRECTION_KEY = "lorealTextDirection";
@@ -11,9 +11,7 @@ const categoryFilter = document.getElementById("categoryFilter");
 const productSearch = document.getElementById("productSearch");
 const productCount = document.getElementById("productCount");
 const productsContainer = document.getElementById("productsContainer");
-const selectedProductsList = document.getElementById(
-  "selectedProductsList"
-);
+const selectedProductsList = document.getElementById("selectedProductsList");
 const clearSelectionsButton = document.getElementById("clearSelections");
 const generateRoutineButton = document.getElementById("generateRoutine");
 const chatForm = document.getElementById("chatForm");
@@ -30,7 +28,6 @@ let conversationHistory = [];
 let routineGenerated = false;
 let requestInProgress = false;
 
-/* Load previously selected products from localStorage */
 function loadSavedSelectionIds() {
   try {
     const saved = JSON.parse(
@@ -46,7 +43,6 @@ function loadSavedSelectionIds() {
   }
 }
 
-/* Save selected product IDs to localStorage */
 function saveSelections() {
   localStorage.setItem(
     STORAGE_KEY,
@@ -54,7 +50,6 @@ function saveSelections() {
   );
 }
 
-/* Protect product text before placing it inside HTML */
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -64,21 +59,18 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-/* Get the complete product objects for selected products */
 function getSelectedProducts() {
   return allProducts.filter((product) =>
     selectedIds.has(product.id)
   );
 }
 
-/* Make category names look cleaner */
 function formatCategory(category) {
   return category.replace(/\b\w/g, (letter) =>
     letter.toUpperCase()
   );
 }
 
-/* Load products from products.json */
 async function loadProducts() {
   productsContainer.innerHTML = `
     <div class="placeholder-message">
@@ -101,16 +93,14 @@ async function loadProducts() {
       ? data.products
       : [];
 
-    /*
-      Remove saved IDs that no longer exist
-      in the product data.
-    */
     const validIds = new Set(
       allProducts.map((product) => product.id)
     );
 
     selectedIds = new Set(
-      [...selectedIds].filter((id) => validIds.has(id))
+      [...selectedIds].filter((id) =>
+        validIds.has(id)
+      )
     );
 
     saveSelections();
@@ -127,13 +117,16 @@ async function loadProducts() {
       </div>
     `;
   } finally {
-    productsContainer.setAttribute("aria-busy", "false");
+    productsContainer.setAttribute(
+      "aria-busy",
+      "false"
+    );
   }
 }
 
-/* Apply both category and keyword filters */
 function getFilteredProducts() {
   const selectedCategory = categoryFilter.value;
+
   const query = productSearch.value
     .trim()
     .toLowerCase();
@@ -152,14 +145,13 @@ function getFilteredProducts() {
       .join(" ")
       .toLowerCase();
 
-    const searchMatches =
-      !query || searchableText.includes(query);
-
-    return categoryMatches && searchMatches;
+    return (
+      categoryMatches &&
+      (!query || searchableText.includes(query))
+    );
   });
 }
 
-/* Display product cards */
 function renderProducts() {
   const products = getFilteredProducts();
 
@@ -179,11 +171,14 @@ function renderProducts() {
 
   productsContainer.innerHTML = products
     .map((product) => {
-      const isSelected = selectedIds.has(product.id);
+      const isSelected =
+        selectedIds.has(product.id);
 
       return `
         <article
-          class="product-card${isSelected ? " selected" : ""}"
+          class="product-card${
+            isSelected ? " selected" : ""
+          }"
           data-product-id="${product.id}"
           tabindex="0"
           role="button"
@@ -196,7 +191,7 @@ function renderProducts() {
             <img
               src="${escapeHtml(product.image)}"
               alt="${escapeHtml(product.brand)}
-              ${escapeHtml(product.name)}"
+                ${escapeHtml(product.name)}"
               loading="lazy"
             />
 
@@ -204,9 +199,11 @@ function renderProducts() {
               class="selection-badge"
               aria-hidden="true"
             >
-              <i class="fa-solid ${
-                isSelected ? "fa-check" : "fa-plus"
-              }"></i>
+              <i
+                class="fa-solid ${
+                  isSelected ? "fa-check" : "fa-plus"
+                }"
+              ></i>
             </span>
           </div>
 
@@ -249,9 +246,9 @@ function renderProducts() {
     .join("");
 }
 
-/* Display selected products */
 function renderSelectedProducts() {
-  const selectedProducts = getSelectedProducts();
+  const selectedProducts =
+    getSelectedProducts();
 
   if (!selectedProducts.length) {
     selectedProductsList.innerHTML = `
@@ -261,31 +258,32 @@ function renderSelectedProducts() {
       </p>
     `;
   } else {
-    selectedProductsList.innerHTML = selectedProducts
-      .map(
-        (product) => `
-          <div class="selected-chip">
-            <span>
-              ${escapeHtml(product.brand)}
-              ·
-              ${escapeHtml(product.name)}
-            </span>
+    selectedProductsList.innerHTML =
+      selectedProducts
+        .map(
+          (product) => `
+            <div class="selected-chip">
+              <span>
+                ${escapeHtml(product.brand)}
+                ·
+                ${escapeHtml(product.name)}
+              </span>
 
-            <button
-              class="remove-selected"
-              type="button"
-              data-remove-id="${product.id}"
-              aria-label="Remove ${escapeHtml(product.name)}"
-            >
-              <i
-                class="fa-solid fa-xmark"
-                aria-hidden="true"
-              ></i>
-            </button>
-          </div>
-        `
-      )
-      .join("");
+              <button
+                class="remove-selected"
+                type="button"
+                data-remove-id="${product.id}"
+                aria-label="Remove ${escapeHtml(product.name)}"
+              >
+                <i
+                  class="fa-solid fa-xmark"
+                  aria-hidden="true"
+                ></i>
+              </button>
+            </div>
+          `
+        )
+        .join("");
   }
 
   clearSelectionsButton.disabled =
@@ -296,7 +294,6 @@ function renderSelectedProducts() {
     requestInProgress;
 }
 
-/* Select or unselect a product */
 function toggleProduct(productId) {
   if (selectedIds.has(productId)) {
     selectedIds.delete(productId);
@@ -309,7 +306,6 @@ function toggleProduct(productId) {
   renderSelectedProducts();
 }
 
-/* Open or close a product description */
 function toggleDescription(button) {
   const descriptionId =
     button.getAttribute("aria-controls");
@@ -332,7 +328,6 @@ function toggleDescription(button) {
   description.hidden = isExpanded;
 }
 
-/* Add a message to the chat window */
 function appendMessage(role, text, citations = []) {
   const message = document.createElement("div");
 
@@ -340,6 +335,7 @@ function appendMessage(role, text, citations = []) {
     `message ${role}-message`;
 
   const label = document.createElement("div");
+
   label.className = "message-label";
 
   label.textContent =
@@ -347,7 +343,9 @@ function appendMessage(role, text, citations = []) {
       ? "You"
       : "L'Oréal Advisor";
 
-  const paragraph = document.createElement("p");
+  const paragraph =
+    document.createElement("p");
+
   paragraph.textContent = text;
 
   message.append(label, paragraph);
@@ -356,25 +354,31 @@ function appendMessage(role, text, citations = []) {
     ? citations.filter(
         (citation) =>
           citation &&
-          /^https?:\/\//i.test(citation.url || "")
+          /^https?:\/\//i.test(
+            citation.url || ""
+          )
       )
     : [];
 
   if (safeCitations.length) {
-    const sources = document.createElement("div");
+    const sources =
+      document.createElement("div");
+
     sources.className = "message-sources";
 
     safeCitations
       .slice(0, 6)
       .forEach((citation, index) => {
-        const link = document.createElement("a");
+        const link =
+          document.createElement("a");
 
         link.href = citation.url;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
 
         link.textContent =
-          citation.title || `Source ${index + 1}`;
+          citation.title ||
+          `Source ${index + 1}`;
 
         sources.append(link);
       });
@@ -383,14 +387,16 @@ function appendMessage(role, text, citations = []) {
   }
 
   chatWindow.append(message);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+
+  chatWindow.scrollTop =
+    chatWindow.scrollHeight;
 
   return message;
 }
 
-/* Display animated typing dots */
 function showTypingIndicator() {
-  const message = document.createElement("div");
+  const message =
+    document.createElement("div");
 
   message.className =
     "message assistant-message";
@@ -413,17 +419,17 @@ function showTypingIndicator() {
   `;
 
   chatWindow.append(message);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+
+  chatWindow.scrollTop =
+    chatWindow.scrollHeight;
 }
 
-/* Remove typing animation */
 function removeTypingIndicator() {
   document
     .getElementById("typingIndicator")
     ?.remove();
 }
 
-/* Check whether the Worker URL was added */
 function isWorkerConfigured() {
   return (
     WORKER_URL.startsWith("https://") &&
@@ -433,7 +439,6 @@ function isWorkerConfigured() {
   );
 }
 
-/* Enable or disable controls during an API request */
 function setRequestState(isLoading) {
   requestInProgress = isLoading;
 
@@ -457,12 +462,11 @@ function setRequestState(isLoading) {
     : "Generate My Routine";
 }
 
-/* Send data to the Cloudflare Worker */
 async function callWorker(payload) {
   if (!isWorkerConfigured()) {
     throw new Error(
       "Add your deployed Cloudflare Worker URL " +
-      "to WORKER_URL near the top of script.js."
+      "to WORKER_URL at the top of script.js."
     );
   }
 
@@ -500,9 +504,9 @@ async function callWorker(payload) {
   return data;
 }
 
-/* Generate an AI routine */
 async function generateRoutine() {
-  const selectedProducts = getSelectedProducts();
+  const selectedProducts =
+    getSelectedProducts();
 
   if (
     !selectedProducts.length ||
@@ -521,6 +525,7 @@ async function generateRoutine() {
       .join(", ")}.`;
 
   appendMessage("user", routinePrompt);
+
   setRequestState(true);
   showTypingIndicator();
 
@@ -565,7 +570,6 @@ async function generateRoutine() {
   }
 }
 
-/* Send a follow-up question */
 async function sendFollowUp(messageText) {
   if (
     !routineGenerated ||
@@ -587,7 +591,8 @@ async function sendFollowUp(messageText) {
   try {
     const data = await callWorker({
       action: "chat",
-      selectedProducts: getSelectedProducts(),
+      selectedProducts:
+        getSelectedProducts(),
       messages: conversationHistory,
       webSearch: webSearchToggle.checked,
     });
@@ -616,17 +621,21 @@ async function sendFollowUp(messageText) {
   }
 }
 
-/* Product card click handling */
 productsContainer.addEventListener(
   "click",
   (event) => {
-    const descriptionButton = event.target.closest(
-      "[data-description-toggle]"
-    );
+    const descriptionButton =
+      event.target.closest(
+        "[data-description-toggle]"
+      );
 
     if (descriptionButton) {
       event.stopPropagation();
-      toggleDescription(descriptionButton);
+
+      toggleDescription(
+        descriptionButton
+      );
+
       return;
     }
 
@@ -642,7 +651,6 @@ productsContainer.addEventListener(
   }
 );
 
-/* Allow keyboard product selection */
 productsContainer.addEventListener(
   "keydown",
   (event) => {
@@ -672,13 +680,13 @@ productsContainer.addEventListener(
   }
 );
 
-/* Remove products from the selected list */
 selectedProductsList.addEventListener(
   "click",
   (event) => {
-    const removeButton = event.target.closest(
-      "[data-remove-id]"
-    );
+    const removeButton =
+      event.target.closest(
+        "[data-remove-id]"
+      );
 
     if (removeButton) {
       toggleProduct(
@@ -688,36 +696,32 @@ selectedProductsList.addEventListener(
   }
 );
 
-/* Category filtering */
 categoryFilter.addEventListener(
   "change",
   renderProducts
 );
 
-/* Product keyword search */
 productSearch.addEventListener(
   "input",
   renderProducts
 );
 
-/* Generate routine button */
 generateRoutineButton.addEventListener(
   "click",
   generateRoutine
 );
 
-/* Clear all selected products */
 clearSelectionsButton.addEventListener(
   "click",
   () => {
     selectedIds.clear();
+
     saveSelections();
     renderProducts();
     renderSelectedProducts();
   }
 );
 
-/* Follow-up chat submission */
 chatForm.addEventListener(
   "submit",
   (event) => {
@@ -731,11 +735,11 @@ chatForm.addEventListener(
     }
 
     userInput.value = "";
+
     sendFollowUp(messageText);
   }
 );
 
-/* Change between left-to-right and right-to-left layouts */
 directionToggle.addEventListener(
   "click",
   () => {
@@ -761,7 +765,6 @@ directionToggle.addEventListener(
   }
 );
 
-/* Restore the saved layout direction */
 function initializeDirection() {
   const savedDirection =
     localStorage.getItem(DIRECTION_KEY);
@@ -771,7 +774,8 @@ function initializeDirection() {
       ? "rtl"
       : "ltr";
 
-  document.documentElement.dir = direction;
+  document.documentElement.dir =
+    direction;
 
   directionToggle.querySelector(
     "span"
@@ -781,7 +785,6 @@ function initializeDirection() {
       : "RTL layout";
 }
 
-/* Start the application */
 currentYear.textContent =
   new Date().getFullYear();
 
